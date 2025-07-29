@@ -1,0 +1,1046 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Feedback",
+        "formDescription": "Please give feedback",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Nume",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Operator",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Ambrozie Mihai"
+                  },
+                  {
+                    "option": "Georgescu Matei"
+                  },
+                  {
+                    "option": "Popescu Ion"
+                  },
+                  {
+                    "option": "Ion Ionel"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Care este nota pe care o acordati operatorului ?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "1 - Slab"
+                  },
+                  {
+                    "option": "2 - Insuficient"
+                  },
+                  {
+                    "option": "3 - Satisfacator"
+                  },
+                  {
+                    "option": "4 - Bun"
+                  },
+                  {
+                    "option": "5 - Excelent"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Alte mentiuni",
+              "fieldType": "textarea"
+            },
+            {
+              "fieldLabel": "Contact",
+              "placeholder": "email",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        -120,
+        260
+      ],
+      "id": "e89aa350-f7b2-4a0d-aa13-ffc8b4fbc8d1",
+      "name": "On form submission",
+      "webhookId": "1c1f4a36-d2c0-48e1-91ec-9958bc603347"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Clasifica sentimentul din formularul acesta de feedback {{ $json['Care este nota pe care o acordati operatorului ?'] }} si trimite mi un singur cuvant descriptiv",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        160,
+        -120
+      ],
+      "id": "98433f08-ddfc-4031-b013-ee3df9035a0d",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        160,
+        80
+      ],
+      "id": "2230f0f0-31ea-4dd7-99fe-9ddfc191ff61",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "some_id",
+          "name": "OpenAi account x"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        560,
+        240
+      ],
+      "id": "8ce54270-6b03-48af-8630-346e845330a8",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "DOC_ID",
+          "mode": "list",
+          "cachedResultName": "DOC_NAME",
+          "cachedResultUrl": "DOC_URL"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet_name",
+          "cachedResultUrl": "DOC_URL"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Timestamp": "={{ $('On form submission').item.json.submittedAt }}",
+            "Operator": "={{ $('On form submission').item.json.Operator }}",
+            "Alte mentiuni": "={{ $('On form submission').item.json['Alte mentiuni'] }}",
+            "Nume": "={{ $('On form submission').item.json.Nume }}",
+            "Contact": "={{ $('On form submission').item.json.Contact }}",
+            "Entered by": "FORM",
+            "Sentiment": "={{ $('Basic LLM Chain').item.json.text }}",
+            "Nota operator": "={{ $('On form submission').item.json['Care este nota pe care o acordati operatorului ?'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Timestamp",
+              "displayName": "Timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Operator",
+              "displayName": "Operator",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nota operator",
+              "displayName": "Nota operator",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Alte mentiuni",
+              "displayName": "Alte mentiuni",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nume",
+              "displayName": "Nume",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Contact",
+              "displayName": "Contact",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Entered by",
+              "displayName": "Entered by",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Sentiment",
+              "displayName": "Sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        1240,
+        240
+      ],
+      "id": "253c4b54-45e4-4b36-91f4-47a06f565cb8",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "some_id",
+          "name": "Google Sheets account xx"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Scrie un răspuns concis la e-mail, fără linie de subiect, pentru feedback-ul oferit în Formularul de Feedback al Clientului: {{ $json['Your feedback'] }}.\n\nPentru Feedback Pozitiv ({{ $json.text }}):\nRedactează un e-mail scurt și călduros în care îi mulțumești clientului {{ $json.Name }} pentru că și-a făcut timp să-și împărtășească gândurile. Exprimă o apreciere sinceră pentru sprijinul acordat.\n\nPentru Feedback Negativ ({{ $json.text }}):\nScrie un e-mail empatic și bine gândit, în care îi mulțumești clientului {{ $json.Name }} pentru contribuția valoroasă. Arată un interes sincer față de perspectiva lor, întrebând cum ne-am putea îmbunătăți.\n\nÎncheie întotdeauna e-mailul cu semnătura Fondatorului și CEO-ului:\nCompany-Name",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        820,
+        -120
+      ],
+      "id": "232ca9c5-fbaa-4877-922b-04461437d08d",
+      "name": "Basic LLM Chain1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        820,
+        60
+      ],
+      "id": "0a4af13a-4d34-45d5-8849-c830920840bc",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "some_id",
+          "name": "OpenAi account x"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json.Contact }}",
+        "subject": "Multumim pentru feedback",
+        "message": "={{ $json.text }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1240,
+        -100
+      ],
+      "id": "eb57c2f4-c1c3-4805-b579-b2e3632a9e5a",
+      "name": "Send a message",
+      "webhookId": "9be59a09-1c87-464c-b2b7-f2966a7f0315",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "some_id",
+          "name": "Gmail account xx"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "months"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -40,
+        840
+      ],
+      "id": "f569f60e-c56e-4008-9f59-a0edee4c5656",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Jr_jU1bUl3oUmfwVbOdYKUHC5YOO3uHhBsKKdgiw-EI",
+          "mode": "list",
+          "cachedResultName": "DOC_NAME",
+          "cachedResultUrl": "DOC_URL"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet_name",
+          "cachedResultUrl": "DOC_URL"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        180,
+        840
+      ],
+      "id": "644b808b-e6bd-458e-a571-e851454ea0eb",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "some_id",
+          "name": "Google Sheets account xx"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Presupunem că fiecare item arată așa:\n// { \"Operator\": \"Oprea\", \"Nota operator\": \"1 - Slab\", ... }\n\nconst medii = {};\nconst count = {};\n\n// Iterăm prin toate item-urile din inputul nodului\nfor (const item of items) {\n  const operator = item.json[\"Operator\"];\n  const notaBruta = item.json[\"Nota operator\"];\n\n  if (!operator || !notaBruta) continue;\n\n  // Extragem doar cifra de la început (1, 2, etc.)\n  const nota = parseInt(notaBruta.split(\" - \")[0]);\n\n  if (!isNaN(nota)) {\n    if (!medii[operator]) {\n      medii[operator] = 0;\n      count[operator] = 0;\n    }\n\n    medii[operator] += nota;\n    count[operator] += 1;\n  }\n}\n\n// Construim un array de output cu media pe operator\nconst output = Object.keys(medii).map(operator => {\n  return {\n    json: {\n      operator,\n      media: (medii[operator] / count[operator]).toFixed(2),\n      nr_note: count[operator]\n    }\n  };\n});\n\nreturn output;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        840
+      ],
+      "id": "5d753ca9-b7c2-41cf-b9ee-e5c439eb6b53",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b16ce108-b6b1-4cb0-ac67-3136f693f42f",
+              "leftValue": "={{ $json.Media }}",
+              "rightValue": 3,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        840,
+        840
+      ],
+      "id": "29378b67-eeaf-45c1-b491-eb3671c75a11",
+      "name": "If"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1060,
+        960
+      ],
+      "id": "446283d5-8c71-434b-a762-6dd8b29ebd91",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "sendTo": "email@example.com, ",
+        "subject": "NOTE MICI",
+        "message": "=NOTA operatorului  {{ $json.Operator }} este mai mica decat media : {{ $json.Media }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1060,
+        740
+      ],
+      "id": "cecafe57-5ada-4767-b312-cbcc5fa3ac11",
+      "name": "Send a message1",
+      "webhookId": "c9a1ddac-a78b-4aef-a851-53c4a69ae165",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "some_id",
+          "name": "Gmail account xx"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "DOC_ID",
+          "mode": "list",
+          "cachedResultName": "1Formular_operator",
+          "cachedResultUrl": "DOC_URL"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1136457941,
+          "mode": "list",
+          "cachedResultName": "MEDIE NOTE",
+          "cachedResultUrl": "DOC_URL"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Operator": "={{ $json.operator }}",
+            "Media": "={{ $json.media }}",
+            "Numar_note": "={{ $json.nr_note }}"
+          },
+          "matchingColumns": [
+            "Operator"
+          ],
+          "schema": [
+            {
+              "id": "Operator",
+              "displayName": "Operator",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Media",
+              "displayName": "Media",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Numar_note",
+              "displayName": "Numar_note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        620,
+        840
+      ],
+      "id": "84517a85-1dae-4a9a-97ed-0092e9bce819",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "some_id",
+          "name": "Google Sheets account xx"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formTitle": "Feedback",
+        "formDescription": "Trimiteti feedback",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Nume",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Cum a fost atmosfera din birou saptamana aceasta ?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "1 - Tensionata"
+                  },
+                  {
+                    "option": "2 -  Neplacuta"
+                  },
+                  {
+                    "option": "3 - Neutru"
+                  },
+                  {
+                    "option": "4 - Placuta"
+                  },
+                  {
+                    "option": "5 - Excelenta"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Propuneri",
+              "fieldType": "textarea"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        60,
+        1860
+      ],
+      "id": "1c1d33ff-0a6b-435b-94c0-9bedf29c171d",
+      "name": "On form submission1",
+      "webhookId": "74fc80a8-db11-4d25-b9b7-8ea2d84f16c5"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Clasifica starea de spirit pe baza acestor 2 {{ $json['Cum a fost atmosfera din birou saptamana aceasta ?'] }}, {{ $json.Propuneri }} si trimite mi doar o fraza scurta",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        300,
+        1480
+      ],
+      "id": "d9f26d54-bb77-4ab7-aa57-0507b566eac9",
+      "name": "Basic LLM Chain2"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        300,
+        1680
+      ],
+      "id": "9475cdb9-b4a1-4e9e-9408-ad0bc896a7af",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "some_id",
+          "name": "OpenAi account x"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        700,
+        1840
+      ],
+      "id": "4d97df7c-046f-4005-8068-32a506904032",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "DOC_ID",
+          "mode": "list",
+          "cachedResultName": "DOC_NAME",
+          "cachedResultUrl": "DOC_URL"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1302898284,
+          "mode": "list",
+          "cachedResultName": "FEEDBACK ANGAJATI",
+          "cachedResultUrl": "DOC_URL"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Nume": "={{ $json.Nume }}",
+            "Feedback": "={{ $json['Cum a fost atmosfera din birou saptamana aceasta ?'] }}",
+            "Detalii": "={{ $json.Propuneri }}",
+            "Stare AI": "={{ $json.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Nume",
+              "displayName": "Nume",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Feedback",
+              "displayName": "Feedback",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Detalii",
+              "displayName": "Detalii",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Stare AI",
+              "displayName": "Stare AI",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        1120,
+        1840
+      ],
+      "id": "577745ec-94b6-4d0a-a599-b6f02ff44233",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "some_id",
+          "name": "Google Sheets account xx"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                5
+              ],
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        720,
+        1580
+      ],
+      "id": "bef3a4d4-8367-4553-abfc-6485fa695b26",
+      "name": "Schedule Trigger1"
+    },
+    {
+      "parameters": {
+        "sendTo": "example",
+        "subject": "Feedback",
+        "message": "formular feedback : ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        940,
+        1580
+      ],
+      "id": "23baa2de-b493-4ebe-a25e-3d457101d6f6",
+      "name": "Send a message2",
+      "webhookId": "1b8a3436-48da-468f-90a9-792e879cb3ce",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "some_id",
+          "name": "Gmail account xx"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "███████╗███████╗███████╗██████╗░██████╗░░█████╗░░█████╗░██╗░░██╗░░░░░░█████╗░██╗░░░░░██╗███████╗███╗░░██╗████████╗██╗\n██╔════╝██╔════╝██╔════╝██╔══██╗██╔══██╗██╔══██╗██╔══██╗██║░██╔╝░░░░░██╔══██╗██║░░░░░██║██╔════╝████╗░██║╚══██╔══╝██║\n█████╗░░█████╗░░█████╗░░██║░░██║██████╦╝███████║██║░░╚═╝█████═╝░░░░░░██║░░╚═╝██║░░░░░██║█████╗░░██╔██╗██║░░░██║░░░██║\n██╔══╝░░██╔══╝░░██╔══╝░░██║░░██║██╔══██╗██╔══██║██║░░██╗██╔═██╗░░░░░░██║░░██╗██║░░░░░██║██╔══╝░░██║╚████║░░░██║░░░██║\n██║░░░░░███████╗███████╗██████╔╝██████╦╝██║░░██║╚█████╔╝██║░╚██╗░░░░░╚█████╔╝███████╗██║███████╗██║░╚███║░░░██║░░░██║\n╚═╝░░░░░╚══════╝╚══════╝╚═════╝░╚═════╝░╚═╝░░╚═╝░╚════╝░╚═╝░░╚═╝░░░░░░╚════╝░╚══════╝╚═╝╚══════╝╚═╝░░╚══╝░░░╚═╝░░░╚═╝\n",
+        "height": 840,
+        "width": 1780,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -280,
+        -320
+      ],
+      "typeVersion": 1,
+      "id": "b88a9c61-44b0-49a1-bddb-09942b5ccb89",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "████████╗██████╗░██╗███╗░░░███╗██╗████████╗███████╗██████╗░███████╗░░░░░░██████╗██╗████████╗██╗░░░██╗░█████╗░████████╗██╗███████╗\n╚══██╔══╝██╔══██╗██║████╗░████║██║╚══██╔══╝██╔════╝██╔══██╗██╔════╝░░░░░██╔════╝██║╚══██╔══╝██║░░░██║██╔══██╗╚══██╔══╝██║██╔════╝\n░░░██║░░░██████╔╝██║██╔████╔██║██║░░░██║░░░█████╗░░██████╔╝█████╗░░░░░░░╚█████╗░██║░░░██║░░░██║░░░██║███████║░░░██║░░░██║█████╗░░\n░░░██║░░░██╔══██╗██║██║╚██╔╝██║██║░░░██║░░░██╔══╝░░██╔══██╗██╔══╝░░░░░░░░╚═══██╗██║░░░██║░░░██║░░░██║██╔══██║░░░██║░░░██║██╔══╝░░\n░░░██║░░░██║░░██║██║██║░╚═╝░██║██║░░░██║░░░███████╗██║░░██║███████╗░░░░░██████╔╝██║░░░██║░░░╚██████╔╝██║░░██║░░░██║░░░██║███████╗\n░░░╚═╝░░░╚═╝░░╚═╝╚═╝╚═╝░░░░░╚═╝╚═╝░░░╚═╝░░░╚══════╝╚═╝░░╚═╝╚══════╝░░░░░╚═════╝░╚═╝░░░╚═╝░░░░╚═════╝░╚═╝░░╚═╝░░░╚═╝░░░╚═╝╚══════╝\n",
+        "height": 680,
+        "width": 1780,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -280,
+        520
+      ],
+      "typeVersion": 1,
+      "id": "628017e5-bfe7-45f1-bbff-3298c1a4ac99",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "███████╗███████╗███████╗██████╗░██████╗░░█████╗░░█████╗░██╗░░██╗░░░░░░█████╗░███╗░░██╗░██████╗░░█████╗░░░░░░██╗░█████╗░████████╗██╗\n██╔════╝██╔════╝██╔════╝██╔══██╗██╔══██╗██╔══██╗██╔══██╗██║░██╔╝░░░░░██╔══██╗████╗░██║██╔════╝░██╔══██╗░░░░░██║██╔══██╗╚══██╔══╝██║\n█████╗░░█████╗░░█████╗░░██║░░██║██████╦╝███████║██║░░╚═╝█████═╝░░░░░░███████║██╔██╗██║██║░░██╗░███████║░░░░░██║███████║░░░██║░░░██║\n██╔══╝░░██╔══╝░░██╔══╝░░██║░░██║██╔══██╗██╔══██║██║░░██╗██╔═██╗░░░░░░██╔══██║██║╚████║██║░░╚██╗██╔══██║██╗░░██║██╔══██║░░░██║░░░██║\n██║░░░░░███████╗███████╗██████╔╝██████╦╝██║░░██║╚█████╔╝██║░╚██╗░░░░░██║░░██║██║░╚███║╚██████╔╝██║░░██║╚█████╔╝██║░░██║░░░██║░░░██║\n╚═╝░░░░░╚══════╝╚══════╝╚═════╝░╚═════╝░╚═╝░░╚═╝░╚════╝░╚═╝░░╚═╝░░░░░╚═╝░░╚═╝╚═╝░░╚══╝░╚═════╝░╚═╝░░╚═╝░╚════╝░╚═╝░░╚═╝░░░╚═╝░░░╚═╝\n",
+        "height": 920,
+        "width": 1780
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -280,
+        1200
+      ],
+      "typeVersion": 1,
+      "id": "d57ea0ae-a74a-466f-9cdc-5c76e57d850d",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "URL CLIENTI : https://example.com/\n\n\n\nURL ANGAJATI : https://example.com/",
+        "height": 100,
+        "width": 440,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        260,
+        -520
+      ],
+      "typeVersion": 1,
+      "id": "56ea3d8c-16b8-432a-bce9-c815f4e5062e",
+      "name": "Sticky Note3"
+    }
+  ],
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On form submission1": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain2": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "instanceId"
+  }
+}
